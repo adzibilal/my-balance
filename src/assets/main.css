@@ -1,0 +1,153 @@
+@import './base.css';
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  width: 100vw;
+  font-weight: normal;
+}
+
+a,
+.green {
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    display: flex;
+    place-items: center;
+  }
+}
+
+.transaction-contianer {
+  width: 100%;
+}
+.scroller-transaction {
+  max-height: 65vh;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding-right: 10px;
+}
+.item-transaction {
+  border: 1px solid var(--color-border);
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.item-transaction .amount {
+  font-size: 25px;
+  font-weight: 500;
+}
+
+.text-green {
+  color: #5bbd5a;
+}
+
+.text-red {
+  color: #bd5a5a;
+}
+
+.item-transaction .type {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+.statistik.balance {
+  font-size: 35px;
+}
+.statistik {
+  font-size: 25px;
+}
+
+.grid-statistik {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-bottom: 15px;
+}
+@media (max-width: 800px) {
+  .grid-statistik {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.btn-transaction {
+  background: var(--vt-c-text-light-1);
+  padding: 10px;
+  text-align: center;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+.btn-transaction:hover {
+  background: var(--vt-c-indigo);
+  opacity: 1;
+}
+
+.modal-add {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-background);
+  padding: 15px;
+  min-width: 50%;
+  z-index: 2;
+}
+
+.black-overlay {
+  top: 0;
+  left: 0;
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.607);
+}
+
+input {
+  width: 100%;
+  /* height: 50px; */
+  padding: 15px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  margin-bottom: 15px;
+  margin-top: 5px;
+  color: var(--color-text);
+}
