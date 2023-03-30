@@ -7,9 +7,13 @@ const balance = ref([])
 const income = ref(0)
 const expense = ref(0)
 const isAdd = ref(false)
+const isFilter = ref(false)
 
 const valAmount = ref(0)
 const valType = ref('income')
+const valDesc = ref('')
+const startDate = ref(null)
+const endDate = ref(null)
 
 async function getTransactions() {
   const { data } = await supabase.from('transactions').select().order('date', { ascending: false })
@@ -33,25 +37,33 @@ async function getBalance() {
   balance.value = data
   console.error(balance.value)
 }
+async function filterTransactions() {
+  console.error(startDate.value, endDate.value)
+  const { data } = await supabase
+    .from('transactions')
+    .select()
+    .order('date', { ascending: false })
+    .gte('date', formatStartTime(new Date(startDate.value)))
+    .lt('date', formatEndTime(new Date(endDate.value)))
 
-function getStat() {}
-
+  console.error(data)
+  transactions.value = data
+}
 function formatRupiah(angka) {
   let rupiah = ''
-  const angkaString = angka.toString()
-  const sisaAngka = angkaString.length % 3
-
-  if (angkaString.length > 3) {
-    for (let i = 0; i < angkaString.length; i++) {
-      if (i == sisaAngka && sisaAngka != 0) rupiah += '.'
-      if (i % 3 == sisaAngka && i != 0 && sisaAngka == 0) rupiah += '.'
-      rupiah += angkaString[i]
+  const angkaRev = angka.toString().split('').reverse().join('')
+  for (let i = 0; i < angkaRev.length; i++) {
+    if (i % 3 == 0) {
+      rupiah += angkaRev.substr(i, 3) + '.'
     }
-  } else {
-    rupiah = angkaString
   }
-
-  return `Rp ${rupiah},00`
+  return (
+    'Rp. ' +
+    rupiah
+      .split('', rupiah.length - 1)
+      .reverse()
+      .join('')
+  )
 }
 
 function formatDateTime(dateTimeString) {
@@ -80,7 +92,26 @@ function formatDateTime(dateTimeString) {
   return `${formattedDate}, ${formattedTime}`
 }
 
-async function addTransaction() {
+function formatStartTime(time) {
+  const now = time
+  const dateObj = new Date(now)
+  const year = dateObj.getFullYear()
+  const month = ('0' + (dateObj.getMonth() + 1)).slice(-2)
+  const date = ('0' + dateObj.getDate()).slice(-2)
+
+  return `${year}-${month}-${date}T00:00:00`
+}
+function formatEndTime(time) {
+  const now = time
+  const dateObj = new Date(now)
+  const year = dateObj.getFullYear()
+  const month = ('0' + (dateObj.getMonth() + 1)).slice(-2)
+  const date = ('0' + dateObj.getDate()).slice(-2)
+
+  return `${year}-${month}-${date}T23:59:59`
+}
+
+function curTime() {
   const now = Date.now()
   const dateObj = new Date(now)
   const year = dateObj.getFullYear()
@@ -90,17 +121,24 @@ async function addTransaction() {
   const minutes = ('0' + dateObj.getMinutes()).slice(-2)
   const seconds = ('0' + dateObj.getSeconds()).slice(-2)
 
-  const formattedTime = `${year}-${month}-${date}T${hours}:${minutes}:${seconds}`
-  // console.error(formattedTime)
+  return `${year}-${month}-${date}T${hours}:${minutes}:${seconds}`
+}
 
-  const { error } = await supabase
-    .from('transactions')
-    .insert({ type: valType.value, amount: valAmount.value, date: formattedTime })
+async function addTransaction() {
+  const formattedTime = curTime()
+  console.error(formattedTime)
+  const { error } = await supabase.from('transactions').insert({
+    type: valType.value,
+    amount: valAmount.value,
+    date: formattedTime,
+    description: valDesc.value
+  })
 
   if (error) {
     console.error('addTransaction', error)
   } else {
     valAmount.value = 0
+    valDesc.value = ''
     getTransactions()
     getBalance()
     isAdd.value = false
@@ -120,10 +158,20 @@ async function deleteTransaction(id) {
     }
   }
 }
+
+function toggleFilter() {
+  if (!isFilter.value) {
+    isFilter.value = true
+  } else {
+    isFilter.value = false
+    getTransactions()
+    getBalance()
+  }
+}
 onMounted(() => {
   getTransactions()
   getBalance()
-  getStat()
+  // getStat()
   // addTransaction()
 })
 </script>
@@ -135,6 +183,12 @@ onMounted(() => {
       <div class="statistik balance text-green" v-for="(item, index) in balance" :key="index">
         {{ formatRupiah(item.balance) }}
       </div>
+    </div>
+    <div class="btn btn-sm btn-warning btn-filter" v-if="!isFilter" @click="toggleFilter">
+      Filter
+    </div>
+    <div class="btn btn-sm btn-warning btn-filter" v-if="isFilter" @click="toggleFilter">
+      Hapus Filter
     </div>
     <div class="grid-statistik">
       <div>
@@ -151,7 +205,12 @@ onMounted(() => {
       </div>
     </div>
     <br />
-    <div class="btn-transaction" @click="isAdd = true">Transaksi Baru</div>
+    <div class="btn btn-primary btn-transaction" @click="isAdd = true">Transaksi Baru</div>
+    <input class="form-control" v-if="isFilter" v-model="endDate" type="date" name="" id="" />
+    <input class="form-control" v-if="isFilter" v-model="startDate" type="date" name="" id="" />
+    <div class="btn btn-warning btn-transaction" v-if="isFilter" @click="filterTransactions">
+      Filter
+    </div>
     <div class="scroller-transaction">
       <div v-for="transaction in transactions" :key="transaction.id" class="item-transaction">
         <div
@@ -180,10 +239,15 @@ onMounted(() => {
     <div class="black-overlay" v-if="isAdd" @click="isAdd = false"></div>
     <div class="modal-add" v-if="isAdd">
       <p>Type</p>
-      <input type="text" v-model="valType" />
+      <select class="form-select" name="" id="" v-model="valType">
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+      </select>
       <p>Amount</p>
-      <input type="text" name="" id="" v-model="valAmount" />
-      <div class="btn-transaction" @click="addTransaction">Tambah</div>
+      <input type="text" class="form-control" name="" id="input-amount" v-model="valAmount" />
+      <p>Description</p>
+      <input type="text" class="form-control" name="" id="" v-model="valDesc" />
+      <div class="btn-transaction btn btn-success" @click="addTransaction">Tambah</div>
     </div>
   </div>
 </template>

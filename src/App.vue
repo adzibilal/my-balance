@@ -1,6 +1,9 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
+import 'bootstrap/scss/bootstrap.scss'
+// Import all of Bootstrap's JS
+import * as bootstrap from 'bootstrap'
 </script>
 
 <template>
