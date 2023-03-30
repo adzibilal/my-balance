@@ -6,6 +6,8 @@ const transactions = ref([])
 const balance = ref([])
 const income = ref(0)
 const expense = ref(0)
+const incomeFilter = ref(0)
+const expenseFilter = ref(0)
 const isAdd = ref(false)
 const isFilter = ref(false)
 
@@ -48,6 +50,19 @@ async function filterTransactions() {
 
   console.error(data)
   transactions.value = data
+
+  if (incomeFilter.value != 0 || expenseFilter.value != 0) {
+    incomeFilter.value = 0
+    expenseFilter.value = 0
+  }
+
+  transactions.value.forEach((transaction) => {
+    if (transaction.type === 'income') {
+      incomeFilter.value += transaction.amount
+    } else {
+      expenseFilter.value += transaction.amount
+    }
+  })
 }
 function formatRupiah(angka) {
   let rupiah = ''
@@ -164,6 +179,8 @@ function toggleFilter() {
     isFilter.value = true
   } else {
     isFilter.value = false
+    incomeFilter.value = 0
+    expenseFilter.value = 0
     getTransactions()
     getBalance()
   }
@@ -206,11 +223,27 @@ onMounted(() => {
     </div>
     <br />
     <div class="btn btn-primary btn-transaction" @click="isAdd = true">Transaksi Baru</div>
-    <input class="form-control" v-if="isFilter" v-model="endDate" type="date" name="" id="" />
     <input class="form-control" v-if="isFilter" v-model="startDate" type="date" name="" id="" />
+    <input class="form-control" v-if="isFilter" v-model="endDate" type="date" name="" id="" />
     <div class="btn btn-warning btn-transaction" v-if="isFilter" @click="filterTransactions">
       Filter
     </div>
+    <p v-if="(incomeFilter != 0 || expenseFilter != 0) && isFilter">Statistik Filter</p>
+    <div class="grid-statistik" v-if="(incomeFilter != 0 || expenseFilter != 0) && isFilter">
+      <div>
+        <p>Pemasukan</p>
+        <div class="statistik text-green">
+          {{ formatRupiah(incomeFilter) }}
+        </div>
+      </div>
+      <div>
+        <p>Pengeluaran</p>
+        <div class="statistik text-red">
+          {{ formatRupiah(expenseFilter) }}
+        </div>
+      </div>
+    </div>
+
     <div class="scroller-transaction">
       <div v-for="transaction in transactions" :key="transaction.id" class="item-transaction">
         <div
